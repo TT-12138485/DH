@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>中文文本数字人文分析</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-mark">文</span>
+        <div class="brand-text">
+          <h1>中文文本数字人文分析</h1>
+          <p>词频 · 关键词 · 人物关系 · 情感 · 主题建模</p>
+        </div>
+      </div>
+      <div class="header-tip">粘贴或上传中文文本，一键完成多维度计算分析</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 输入区 -->
+    <section class="panel input-panel">
+      <div class="panel-head">
+        <h2>文本输入</h2>
+        <div class="input-actions">
+          <label class="btn btn-ghost" for="file-input">📄 上传文件</label>
+          <input type="file" id="file-input" accept=".txt,.md,.docx,.pdf" hidden />
+          <button class="btn btn-ghost" id="btn-clear" type="button">清空</button>
+        </div>
+      </div>
+      <textarea id="text-input" placeholder="在此粘贴中文文本，或点击「上传文件」导入 txt / docx / pdf……"></textarea>
+      <div class="input-meta">
+        <span id="char-count">0 字</span>
+        <span id="file-name"></span>
+      </div>
+
+      <div class="options">
+        <div class="option">
+          <label for="custom-names">自定义人物名单（可选，每行一个）</label>
+          <input type="text" id="custom-names" placeholder="例如：成吉思汗 忽必烈（用空格或逗号分隔）" />
+        </div>
+        <div class="option option-inline">
+          <label for="num-topics">主题数量</label>
+          <select id="num-topics">
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5" selected>5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="analyze-row">
+        <button class="btn btn-primary" id="btn-analyze" type="button">开始分析</button>
+        <span class="analyze-status" id="analyze-status"></span>
+      </div>
+    </section>
+
+    <!-- 结果区 -->
+    <section class="results" id="results" hidden>
+      <div class="panel-head">
+        <h2>分析结果</h2>
+        <span class="result-hint" id="result-hint"></span>
+      </div>
+
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="overview">概览</button>
+        <button class="tab" data-tab="freq">词频</button>
+        <button class="tab" data-tab="wordcloud">词云</button>
+        <button class="tab" data-tab="keywords">关键词</button>
+        <button class="tab" data-tab="lexical">词汇分析</button>
+        <button class="tab" data-tab="network">人物关系</button>
+        <button class="tab" data-tab="sentiment">情感分析</button>
+        <button class="tab" data-tab="topics">主题建模</button>
+      </nav>
+
+      <div class="tab-panels">
+        <!-- 概览 -->
+        <div class="tab-panel active" id="panel-overview">
+          <div class="stat-grid" id="stat-grid"></div>
+          <div class="card">
+            <div class="card-title">情感倾向</div>
+            <div id="chart-overview-gauge" class="chart chart-sm"></div>
+          </div>
+        </div>
+
+        <!-- 词频 -->
+        <div class="tab-panel" id="panel-freq">
+          <div class="card">
+            <div class="card-title">高频词 Top 30</div>
+            <div id="chart-freq" class="chart"></div>
+          </div>
+        </div>
+
+        <!-- 词云 -->
+        <div class="tab-panel" id="panel-wordcloud">
+          <div class="card">
+            <div class="card-title">词云</div>
+            <div id="chart-wordcloud" class="chart chart-lg"></div>
+          </div>
+        </div>
+
+        <!-- 关键词 -->
+        <div class="tab-panel" id="panel-keywords">
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">TF-IDF 关键词</div>
+              <div id="chart-tfidf" class="chart"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">TextRank 关键词</div>
+              <div id="chart-textrank" class="chart"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 词汇分析 -->
+        <div class="tab-panel" id="panel-lexical">
+          <div class="stat-grid" id="lexical-stats"></div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">词性分布 <span class="subtitle">实词占比越高，语义信息越密集</span></div>
+              <div id="chart-pos" class="chart"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">词长分布</div>
+              <div id="chart-wordlen" class="chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">高频搭配（二元词组）<span class="subtitle">相邻共现的词语组合，反映固定表达与语块</span></div>
+            <div id="chart-bigrams" class="chart"></div>
+          </div>
+        </div>
+
+        <!-- 人物关系 -->
+        <div class="tab-panel" id="panel-network">
+          <div class="stat-grid" id="network-stats"></div>
+          <div class="card">
+            <div class="card-title">人物共现关系网络 <span class="subtitle">节点越大出场越频繁，连线越粗关系越紧密</span></div>
+            <div id="chart-network" class="chart chart-lg"></div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">人物出场频次 Top 15</div>
+              <div id="chart-person-freq" class="chart"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">人物关系强度 Top 15</div>
+              <div id="chart-person-relations" class="chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">人物中心度排行 <span class="subtitle">加权度＝与所有人物关系强度之和，衡量「关系最广/枢纽」地位</span></div>
+            <div id="chart-person-centrality" class="chart"></div>
+          </div>
+          <div id="person-communities"></div>
+        </div>
+
+        <!-- 情感 -->
+        <div class="tab-panel" id="panel-sentiment">
+          <div class="stat-grid" id="sentiment-stats"></div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">情感倾向</div>
+              <div id="chart-sentiment-gauge" class="chart"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">情感走势（按段落）</div>
+              <div id="chart-sentiment-line" class="chart"></div>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">段落情感强度分布</div>
+              <div id="chart-sentiment-hist" class="chart"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">情感极值段落</div>
+              <div id="sentiment-extremes"></div>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">积极情感词</div>
+              <div id="chart-pos-words" class="chart"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">消极情感词</div>
+              <div id="chart-neg-words" class="chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">情感修饰统计 <span class="subtitle">程度副词放大/削弱情感强度，否定词翻转极性</span></div>
+            <div id="sentiment-modifiers"></div>
+          </div>
+        </div>
+
+        <!-- 主题 -->
+        <div class="tab-panel" id="panel-topics">
+          <div class="stat-grid" id="topic-stats"></div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">主题占比</div>
+              <div id="chart-topics-pie" class="chart chart-sm"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">主题随段落演变（主题流）</div>
+              <div id="chart-topics-flow" class="chart chart-sm"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">段落 × 主题分布热力图 <span class="subtitle">颜色越深表示该段落越偏向某主题</span></div>
+            <div id="chart-topics-heatmap" class="chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">各主题关键词及权重 <span class="subtitle">按主题内权重排序</span></div>
+            <div id="topic-keywords"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>中文文本数字人文分析 · 基于 jieba / scikit-learn / ECharts</span>
+  </footer>
+
+  <script src="js/vendor/echarts.min.js"></script>
+  <script src="js/vendor/echarts-wordcloud.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

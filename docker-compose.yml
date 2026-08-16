@@ -1,0 +1,10 @@
+services:
+  literary-dh:
+    build: .
+    image: literary-dh-web:latest
+    container_name: literary-dh-web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=Asia/Shanghai

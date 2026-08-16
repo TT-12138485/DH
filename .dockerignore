@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+*.md
+.dockerignore
+Dockerfile
+docker-compose.yml
+deploy.sh
+frontend/.DS_Store
+backend/.DS_Store
